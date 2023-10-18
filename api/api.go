@@ -1,8 +1,5 @@
 package api
 
-type Service struct {
-	token string
-}
 type API struct {
 	BllSmartImage  *BllSmartImage
 	MiddleSmartApi *MiddleSmartApi
