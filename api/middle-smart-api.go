@@ -12,7 +12,7 @@ func NewMiddleSmartApi(token string) *MiddleSmartApi {
 	return &MiddleSmartApi{token: token}
 }
 
-func (s *MiddleSmartApi) getPip() string {
+func (s *MiddleSmartApi) GetPip() string {
 	fmt.Println("MiddleSmartApi getPip")
 	return "pip"
 }
