@@ -1,4 +1,4 @@
 # zhihui-sdk-go
 
 Go语言 SDK
-v0.1.2
+v0.1.7
