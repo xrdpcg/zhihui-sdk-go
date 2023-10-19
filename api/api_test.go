@@ -6,8 +6,8 @@ import (
 
 func TestAuth(t *testing.T) {
 	api := NewAPI("tokengsss")
-	b := api.BllSmartImage.renderApollo()
-	c := api.MiddleSmartApi.getPip()
+	b := api.BllSmartImage.RenderApollo()
+	c := api.MiddleSmartApi.GetPip()
 	expected := "renderApollo"
 	e2 := "pip"
 
