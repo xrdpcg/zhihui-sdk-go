@@ -12,6 +12,7 @@ func NewBllSmartImage(token string) *BllSmartImage {
 	return &BllSmartImage{token: token}
 }
 
-func (s *BllSmartImage) renderApollo() {
+func (s *BllSmartImage) renderApollo() string {
 	fmt.Println("renderApollo")
+	return "renderApollo"
 }
