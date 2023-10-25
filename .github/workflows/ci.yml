@@ -20,17 +20,17 @@ jobs:
 
       - name: Get current tag
         id: get_tag
-        run: echo ::set-output name=tag::$(git describe --abbrev=0 --tags)
+        run: echo "TAG=$(git describe --abbrev=0 --tags)" >> $GITHUB_ENV
 
       - name: Bump version
         id: bump_version
-        run: echo ::set-output name=new_tag::$(echo ${{ steps.get_tag.outputs.tag }} | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+        run: echo "NEW_TAG=$(echo $TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')" >> $GITHUB_ENV
 
       - name: Update tag
-        run: git tag ${{ steps.bump_version.outputs.new_tag }}
+        run: git tag ${{ env.NEW_TAG }}
 
       - name: Push tag
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tags: ${{ steps.bump_version.outputs.new_tag }}
+          tags: ${{ env.NEW_TAG }}
