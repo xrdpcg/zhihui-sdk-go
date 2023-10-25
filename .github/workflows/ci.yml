@@ -24,7 +24,7 @@ jobs:
 
       - name: Bump version
         id: bump_version
-        run: echo "NEW_TAG=$(echo $TAG | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')" >> $GITHUB_ENV
+        run: echo "NEW_TAG=v$(echo $TAG | cut -c2- | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')" >> $GITHUB_ENV
 
       - name: Update tag
         run: git tag ${{ env.NEW_TAG }}
