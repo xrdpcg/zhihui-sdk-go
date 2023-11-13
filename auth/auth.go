@@ -12,33 +12,9 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
-	"time"
+	"strings"
 )
 
-func sigCode(params map[string]string, key string) map[string]string {
-	keys := make([]string, 0, len(params))
-	for k := range params {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	var sortedParams string
-	for _, k := range keys {
-		sortedParams += k + "=" + params[k] + "&"
-	}
-	sortedParams = sortedParams[:len(sortedParams)-1]
-	h := hmac.New(sha256.New, []byte(key))
-	h.Write([]byte(url.QueryEscape(sortedParams)))
-
-	params["sig"] = hex.EncodeToString(h.Sum(nil))
-
-	return params
-}
-
-type AuthOptions struct {
-	channel string
-	stamp   string
-}
 type SuccessResponse struct {
 	StatusCode int  `json:"statusCode"`
 	Data       Data `json:"data"`
@@ -56,20 +32,29 @@ type Response interface {
 	// 定义接口方法（如果有需要的话）
 }
 
-func Auth(appId string, appKey string, options ...AuthOptions) string {
-	defaultOptions := AuthOptions{
-		channel: "api",
-		stamp:   "apiUser",
+type Auth struct {
+	id        string
+	secretId  string
+	secretKey string
+	host      string
+}
+
+func NewAuth(id string, secretId string, secretKey string) *Auth {
+	return &Auth{
+		id:        id,
+		secretId:  secretId,
+		secretKey: secretKey,
+		host:      "https://zhihui.qq.com",
 	}
-	if len(options) > 0 {
-		defaultOptions = options[0]
-	}
+}
+func (a *Auth) SetHost(host string) {
+	a.host = strings.Replace(host, "api.", "", 1)
+}
+
+func (a *Auth) Init() string {
 	params := map[string]interface{}{
-		"appid":      appId,
-		"channel":    defaultOptions.channel,
-		"stamp":      defaultOptions.stamp,
-		"updateInfo": true,
-		"timestamp":  time.Now().UnixNano() / int64(time.Millisecond),
+		"id":       a.id,
+		"secretId": a.secretId,
 	}
 	paramsMap := make(map[string]string)
 	for k, v := range params {
@@ -84,9 +69,8 @@ func Auth(appId string, appKey string, options ...AuthOptions) string {
 			paramsMap[k] = strconv.FormatInt(v, 10)
 		}
 	}
-	key := appKey
 	// 生成sig
-	paramsMap = sigCode(paramsMap, key)
+	paramsMap = a.sigCode(paramsMap, a.secretKey)
 	// 将params转换为JSON格式的字符串
 	body, err := json.Marshal(paramsMap)
 	if err != nil {
@@ -94,7 +78,7 @@ func Auth(appId string, appKey string, options ...AuthOptions) string {
 		return "error"
 	}
 	// 发起POST请求
-	apiURL := "https://zhihui.qq.com/account/api/auth/token"
+	apiURL := a.host + "/account/api/auth/secret"
 	resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Println("POST request error:", err)
@@ -128,4 +112,24 @@ func Auth(appId string, appKey string, options ...AuthOptions) string {
 		return "error"
 	}
 	return "error"
+
+}
+
+func (a *Auth) sigCode(params map[string]string, key string) map[string]string {
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	var sortedParams string
+	for _, k := range keys {
+		sortedParams += k + "=" + params[k] + "&"
+	}
+	sortedParams = sortedParams[:len(sortedParams)-1]
+	h := hmac.New(sha256.New, []byte(key))
+	h.Write([]byte(url.QueryEscape(sortedParams)))
+
+	params["sig"] = hex.EncodeToString(h.Sum(nil))
+
+	return params
 }
